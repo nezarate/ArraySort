@@ -20,7 +20,7 @@ selectionSort:
 
 	forloop: # j < n 
 		bge t1, t3, forend # if the next value is greater than the size of array , go to swap because we must be done 
-		
+		#bge t1, t3, endsort
 	
 	if: 
 		slli t4, t1, 2 # t4 = j * 4 (multiply by 4 to turn from index to location in array)
@@ -64,7 +64,7 @@ selectionSort:
 			mv a0, t6
 			mv a1, t0
 			mv a2, t3
-			b selectionSort
+			jal selectionSort
 		endif2:
 			b endsort
 			
@@ -113,9 +113,11 @@ endsort:
 	#ecall
 
 	
-	lw ra, 12(sp)
-	li t1, 16
-	mul t0, t0, t1 # becuase stack is added to each time it recursively calls itself (i * 16)
-	add sp, sp, t0
-	ret	
+	lw ra, 12(sp) #restore ra
+	addi sp, sp, 16
+	ret
+	#li t1, 16
+	#mul t0, t0, t1 # becuase stack is added to each time it recursively calls itself (i * 16)
+	#add sp, sp, t0
+	#ret	
 	
