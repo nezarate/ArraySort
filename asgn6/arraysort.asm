@@ -5,132 +5,117 @@
 selectionSort:
 # callee setup goes here
 
-#a0 = array starting address
-#a1 = starting element for sort
-#a2 = size of array 
+	addi sp, sp, -16
+	sw ra, 12(sp)
 
-#t0 = i (current element in arary)
-#t1 = j (next element in first for)
-#t2 = min (index of minimum value)
-#t3 = swapping temp register
-#t4 = array element value (i)
-#t5 = minimum element value
-#t6 = second if counter 
+	mv t0, a1 # t0 = i
+	mv t1, zero # j = 0
+	mv t2, a1 # min = i
+	mv t3, a2 # t3 = size of array (n)
+	mv t6, a0 # t6 = address of array
 
-	addi t0, a1, 0	# t0 = i 
+	for:
+		addi t1, t0, 1	#j = i + 1
+		b forloop
 
-#    /* find the minimum element in the unsorted subarray `[i…n-1]`
-#    // and swap it with `arr[i]`  */
-#    int j;
-	li t1, 0
-
-#    int min = i;
-	addi t2, a1, 0 
-
-#    for (j = i + 1; j < n; j++)    {
-
-for:
-#j = i + 1;
-	addi t1, t0, 1	# aleady moved a1 -> t1
-	b forloop
-
-forloop:
-# j < n 
-	bge t1, a2, swap # if the next value is greater than the size of array , go to swap because we must be done 
-	b if1
+	forloop: # j < n 
+		bge t1, t3, forend # if the next value is greater than the size of array , go to swap because we must be done 
+		
 	
-
-#        /* if `arr[j]` is less, then it is the new minimum */
-#        if (arr[j] < arr[min]) {
-if1:
-	slli t4, t1, 2 # t4 = j * 4 (multiply by 4 to turn from index to location in array)
-	add t4, t4, a0 # t4 = &array[j]
-	lw t4, 0(t4) # t4 = array[j]
+	if: 
+		slli t4, t1, 2 # t4 = j * 4 (multiply by 4 to turn from index to location in array)
+		add t4, t4, t6 # t4 = &array[j]
+		lw t4, 0(t4) # t4 = array[j]
+		
+		#mv a0, t4
+		#li a7, 1
+		#ecall
+		
 	
-	slli t5, t1, 2 # t5 = j * 4 
-	add t5, t5, a0 # t5 = &array[min]
-	lw t5, 0(t5) # t5 = array[min]
-	
-	blt t4, t5, update_min # if array element is less than minimum
-	b increment
-increment:
-	addi t1, t1, 1 # j++
-	j forloop
-	
-update_min:
-#            min = j;    /* update the index of minimum element */
-	add t2, t1, zero # min = j
-	b increment
-#        }
-endif1:
+		slli t5, t2, 2 # t5 = j * 4 
+		add t5, t5, t6 # t5 = &array[min]
+		lw t5, 0(t5) # t5 = array[min]
+		
+		#mv a0, t5
+		#li a7, 1
+		#ecall
+		
+		bge t4, t5, endif
+		mv t2, t1
+		
+		#mv a0, t2
+		#li a7, 1
+		#ecall
+		
+		
+	endif:
+		addi t1, t1, 1 # j++
+		b forloop
 
-
-#    }
-endfor:
- 
-#    /* swap the minimum element in subarray `arr[i…n-1]` with `arr[i] */
-#    swap(arr, min, i);
-#caller setup and subroutine call for swap goes here.
-
-#caller teardown for swap goes here (if needed).
- 
-#    if (i + 1 < n) {
-if2:
-	mv t6, a1		# t6 is i+1
-	addi t6, t6, 1
-	bge t6, a2, endif2
-	
-
-#        selectionSort(arr, i + 1, n);
-#caller setup and subroutine call for selectionSort goes here.
-
-	# a0 is still array starting memory 
-	addi a1, a1, 1
-	# a2 is still size of array 
-	b selectionSort
-
-#caller teardown for selectionSort goes here (if needed).
-
-
-
-#    }
-endif2:
-
-	
-# callee teardown goes here
-
-
-#}
-
-# a0 = array inital
-# a1 = minimum
-# a2 = element to swap with 
- 
-
-#/* Utility function to swap values at two indices in an array*/
-#void swap(int arr[], int i, int j) {
+	forend:
+		mv a0, t6
+		mv a1, t2
+		mv a2, t0
+		b swap
+		
+		if2:
+			addi t0, t0, 1
+			bge t0, t3, endif2
+			mv a0, t6
+			mv a1, t0
+			mv a2, t3
+			b selectionSort
+		endif2:
+			b endsort
+			
+			
+		
 swap: 
 # swap callee setup goes here
 
 #    int temp = arr[i];
-	slli t3, a1, 2 # t3 = i * 4
-	add t3, t3, a0 # t3 = &array[i]
-	lw t3, 0(t3)   # t3 = array[i]
+	addi sp, sp, -16
+	sw s0, 12(sp)
+	sw s1, 8(sp)
 	
+	slli t5, a2, 2 # t3 = i * 4
+	add t5, t5, a0 # t3 = &array[i]
+	mv s0, t5	
+	lw t5, 0(t5)   # t3 = array[i]
+
 	
 #    arr[i] = arr[j];
-	slli t4, t2, 2 # t4 = min * 4 (multiply by four to get value of this index number)
+	slli t4, a1, 2 # t4 = min * 4 (multiply by four to get value of this index number)
 	add t4, t4, a0 # t4 = &array[min]
+	mv s1, t4
 	lw t4, 0(t4)   # t4 = array[min]
 	
-	sw t4, 0(t3)	# array[i] = array[min]
-	sw t3, 0(t3)   # array[min] = array[i]
-
-#    arr[j] = temp;
+	#mv a0, t4
+	#li a7, 1
+	#ecall
 	
+	sw t4, 0(s0)	# array[i] = array[min]
+	sw t5, 0(s1)   # array[min] = array[i]
+	
+	lw s0, 12(sp)
+	lw s1, 8(sp)
+	
+	addi sp, sp, 16
 
-# swap callee teardown goes here
 	b if2
+#    arr[j] = temp;
 
+endsort:
+	
+	#lw t0, 0(t6)
+	#mv a0, t0
+	#li a7, 1
+	#ecall
 
-#}
+	
+	lw ra, 12(sp)
+	li t1, 16
+	mul t0, t0, t1 # becuase stack is added to each time it recursively calls itself (i * 16)
+	add sp, sp, t0
+	ret	
+	
