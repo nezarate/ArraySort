@@ -44,10 +44,17 @@ if1:
 	add t4, t4, t6 # t4 = &array[j].studentid
 	lw t4, 0(t4) # t4 = array[j].studentid
 	
+	
+	
 	slli t5, t2, 4 # t5 = j * 4
 	addi t5, t5, 8 # t5 = j * 16 + 8
 	add t5, t5, t6 # t5 = &array[min].sutdentid
 	lw t5, 0(t5) # t5 = array[min].studentid
+	
+	#mv a0, t5
+	#li a7, 1
+	#ecall
+	
 			
 	bge t4, t5, endif1
 	mv t2, t1
@@ -83,7 +90,7 @@ if2:
 	mv a0, t6
 	mv a1, t0
 	mv a2, t3
-	b selectionSort
+	jal selectionSort
 
 #caller setup goes here
 
@@ -107,36 +114,82 @@ printArray:
 #callee setup goes here
 	addi    sp, sp, -16
         sw      ra, 12(sp)
-        sw      s0, 8(sp)
-        sw      s1, 4(sp)
-        sw      s2, 0(sp)
-        mv      s0, a0
-        mv      s1, a1
 
-#    int i;
+        
+ 
+        mv t1, a0 # t1= address
+        mv t2, a1 # t2 = size n
+        li t4, 8
+        li t5, 12
 
-#    for (i = 0; i < n; i++) {
-for2:
+        
+        
+        
+        for2:
+        	mv t0, zero # i=0
+        	
+        forloop2:
+        	bge t0, t2, forend2
+        	slli t3, t0, 4 
+		add t3, t3, t1  
+		addi t3, t3, 8
+			
+		lw t6, 0(t3)
+		
+		mv a0, t6 
+		li a7, 1
+		ecall 
+		
+		mv t6, zero
+		li t6, ' ' 
+		
+		mv a0, t6
+		li a7, 11
+		ecall
+		
+		sub t3, t3, t4	# print string name
+		
+		mv a0, t3
+		li a7, 4
+		ecall 
+		
+		li t6, ' ' 
+		
+		mv a0, t6
+		li a7, 11
+		ecall
+		
+		mv t6, zero
+		add t3, t3, t5	
+		lw t6, 0(t3)
+		
+		mv a0, t6
+		li a7, 1
+		ecall
+		
 
+		
+		addi t0, t0, 1
+		
+		
+		li t6, 10
+		beq t6, t0, forend2
+		
+		li t6, '\n' 
+		mv a0, t6
+		li a7, 11
+		ecall
+		 
+		b forloop2
+		
+	forend2:
+	
+		lw ra, 12(sp) #restore ra
+		addi sp, sp, 16
+		ret
 
-forloop2:
-
-#use ecalls to implement printf
-#        printf("%d ", arr[i].studentid);
-
-
-#        printf("%s ", arr[i].name);
-
-
-#        printf("%d\n", arr[i].coursenum);
-
-
-#    }
-endfor2:
-
-#caller teardown goes here
-
-#}
+ 
+ 
  
  
 
@@ -153,16 +206,21 @@ swap:
 
 #    arr[j] = temp;
 # swap callee setup goes here
-	addi sp, sp, -40 # allocating 40 because each node takes up 16 bytes plus 8
-	sw s0, 36(sp)	# start of node 2 is 36
-	sw s1, 20(sp)	# start of node 1 is 20
+	#addi sp, sp, -40 # allocating 40 because each node takes up 16 bytes plus 8
+	#sw s0, 36(sp)	# start of node 2 is 36
+	#sw s1, 20(sp)	# start of node 1 is 20
+	
+	addi sp, sp, -16
+	sw s0, 12(sp)
+	sw s1, 8(sp)
+	sw s2, 4(sp)
+	sw s3, 0(sp)
+	
 
 #    studentNode temp = arr[i];
 	slli t5, a2, 4 # t5 = i * 16
 	add t5, t5, a0 # t5 = &array[i]
 	mv s0, t5	# s0 = &array[i]
-	
-	
 	#lw t5, 0(t5)   # t5 = array[i].stringname 
 	
 	
@@ -170,41 +228,67 @@ swap:
 	add t4, t4, a0 # t4 = &array[j]
 	mv s1, t4	# s1 = &array[j]
 	
-	#lw t4, 0(t4)   # t4 = array[min]
 	
-	#mv a0, t4
-	#li a7, 1
-	#ecall
+	lw s2, 0(t4)
+	lw s3, 0(t5) 
+	  
+	sw s2, 0(s0)   
+	sw s3, 0(s1)
+		
+	addi t4, t4, 4	
+	addi t5, t5, 4
+				
+
+	lw s2, 0(t4)
+	lw s3, 0(t5)
 	
-	sw t4, 0(s0)	# incrementing through 16 bytes and swapping for each node 
-	addi t4, t4, 4
-	sw t4, 4(s0)
-	addi t4, t4, 4
-	sw t4, 8(s0)
-	addi t4, t4, 4
-	sw t4, 12(s0)
+	sw s2, 4(s0)
+	sw s3, 4(s1)
 	
-	sw t5, 0(s1)   # same here 
+	
+	addi t4, t4, 4	
 	addi t5, t5, 4
-	sw t5, 4(s1)
+				
+
+	lw s2, 0(t4)
+	lw s3, 0(t5)
+	
+	sw s2, 8(s0)
+	sw s3, 8(s1)
+	
+	
+	addi t4, t4, 4	
 	addi t5, t5, 4
-	sw t5, 8(s1)
-	addi t5, t5, 4
-	sw t5, 12(s1)
+				
+
+	lw s2, 0(t4)
+	lw s3, 0(t5)
+	
+	sw s2, 12(s0)
+	sw s3, 12(s1)
+	
+	
 
 	
-	lw s0, 36(sp)
-	lw s1, 20(sp)
+	lw s0, 12(sp)
+	lw s1, 8(sp)
+	lw s2, 4(sp)
+	lw s3, 0(sp)
 	
-	addi sp, sp, 40
+	addi sp, sp, 16
 
 	b if2
 #    arr[j] = temp;
 
 
 endsort:
-
 	
+	mv t5, zero
+	slli t5, t2, 4 # t5 = j * 4
+	addi t5, t5, 8 # t5 = j * 16 + 8
+	add t5, t5, t6 # t5 = &array[min].sutdentid
+	lw t5, 0(t5) # t5 = array[min].studentid
+
 	#lw t0, 0(t6)
 	#mv a0, t0
 	#li a7, 1
@@ -223,3 +307,4 @@ endsort:
 
 
 #}
+
